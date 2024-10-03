@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングゲーム</title>
+    <link rel="icon" href="favicon.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            transition: background-color 0.3s;
+        }
+
+        .game-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #wordDisplay {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #inputField {
+            font-size: 24px;
+            width: 200px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        #score {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        #message {
+            font-size: 18px;
+            color: red;
+            margin-top: 10px;
+        }
+
+        #startButton, #retryButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #timer {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        #rank {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        #startScreen {
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>タイピングゲーム</h1>
+        <button id="startButton">スタート</button>
+    </div>
+    <div class="game-container" id="gameContainer">
+        <div id="wordDisplay">準備中...</div>
+        <input type="text" id="inputField" autofocus disabled>
+        <div id="score">得点: 0</div>
+        <div id="timer">時間: 60秒</div>
+        <div id="message"></div>
+        <div id="rank"></div>
+    </div>
+    <div id="endScreen" style="display: none; text-align: center;">
+        <h2>ゲーム終了！</h2>
+        <div id="finalScore"></div>
+        <div id="finalRank"></div>
+        <button id="retryButton">もう一度</button>
+    </div>
+    <audio id="backgroundMusic" src="background.mp3" loop></audio>
+
+
+    <script>
+        const words = ["apple", "banana", "grape", "orange", "melon", "strawberry", "kiwi", "peach", "pineapple", "watermelon", "sunflower", "pumpkin", "dandelion", "Kono shiru wa totemo oishii desu.", "Hana ga saku to, kimochi ga ureshiku naru.", "Yasumi ni umi e ikitai.", "Kawaii neko ni aemashita.", "Ue ni tsutsumi ga aru.", "Kaze ga fuite, kaze ga kimochi ii.", "Doko ni ikou ka kanngaete imasu.", "Asagohan ni tamago ga arimasu.", "Tsuki ga totemo akakute utsukushii.", "Tenshi no youna kaori ga shita.", "Toshokan ni itte, hon wo yomimasu.", "Konnichiwa", "Ogennki desu ka?", "Watashi ha gakusei desu.", "Kore wa hon desu.", "Ashita ha ame ga furimasu.", "Neko ga suki desu.", "Ongaku wo kikimasu.", "Kyou ha ii tenki desu."];
+        let currentWord;
+        let score = 0;
+        let consecutiveHits = 0;
+        let timer = 60;
+        let interval;
+
+        const wordDisplay = document.getElementById("wordDisplay");
+        const inputField = document.getElementById("inputField");
+        const scoreDisplay = document.getElementById("score");
+        const messageDisplay = document.getElementById("message");
+        const timerDisplay = document.getElementById("timer");
+        const startButton = document.getElementById("startButton");
+        const rankDisplay = document.getElementById("rank");
+        const gameContainer = document.getElementById("gameContainer");
+        const endScreen = document.getElementById("endScreen");
+        const finalScoreDisplay = document.getElementById("finalScore");
+        const finalRankDisplay = document.getElementById("finalRank");
+        const retryButton = document.getElementById("retryButton");
+
+        function newWord() {
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            wordDisplay.textContent = currentWord;
+            inputField.value = "";
+            inputField.focus();
+        }
+
+        function checkInput() {
+            const userInput = inputField.value.trim().toLowerCase(); // 入力をトリミングし、小文字に変換
+            if (userInput === currentWord.toLowerCase()) { // 現在の単語も小文字に変換
+                score += 5; // 成功時の基本得点
+                // 長い文章の場合は得点を追加
+                if (currentWord.length > 20) { // 長い文章の条件
+                    score += 10; // 長い文章に対して追加得点
+                }
+                consecutiveHits += 1;
+                score += consecutiveHits; // 連続成功で得点アップ
+                messageDisplay.textContent = "成功！";
+                setTimeout(() => { messageDisplay.textContent = ""; }, 1000);
+            } else if (userInput !== "") { // 空文字でない場合のみミスを表示
+                score -= 5; // ミス時の減点
+                consecutiveHits = 0; // 連続成功リセット
+                messageDisplay.textContent = "ミス！";
+                setTimeout(() => { messageDisplay.textContent = ""; }, 1000);
+            }
+            scoreDisplay.textContent = "得点: " + score;
+
+            // ランク表示
+            if (score > 300) {
+                rankDisplay.textContent = "ランク: タイピングの天才";
+            } else if (score > 200) {
+                rankDisplay.textContent = "ランク: 上級者";
+            } else if (score > 150) {
+                rankDisplay.textContent = "ランク: 中級者";
+            } else {
+                rankDisplay.textContent = "ランク: ビギナー";
+            }
+
+            newWord();
+        }
+
+        function startGame() {
+            score = 0;
+            consecutiveHits = 0;
+            timer = 60; // ゲーム時間を60秒にリセット
+            inputField.disabled = false; // 入力フィールドを有効にする
+            scoreDisplay.textContent = "得点: " + score;
+            timerDisplay.textContent = "時間: " + timer + "秒";
+            rankDisplay.textContent = ""; // ランクをリセット
+            messageDisplay.textContent = "";
+
+            // スタート画面を非表示にしてゲーム画面を表示
+            document.getElementById("startScreen").style.display = "none";
+            gameContainer.style.display = "flex";
+            endScreen.style.display = "none"; // 終了画面を非表示にする
+
+            newWord(); // 新しい単語を表示
+
+            interval = setInterval(() => {
+                timer--;
+                timerDisplay.textContent = "時間: " + timer + "秒";
+                if (timer <= 0) {
+                    clearInterval(interval);
+                    inputField.disabled = true; // 入力フィールドを無効にする
+                    messageDisplay.textContent = "ゲーム終了！最終得点: " + score;
+
+                    // 最終得点とランク表示
+                    finalScoreDisplay.textContent = "最終得点: " + score;
+                    if (score > 300) {
+                        finalRankDisplay.textContent = "最終ランク: タイピングの天才";
+                    } else if (score > 200) {
+                        finalRankDisplay.textContent = "最終ランク: 上級者";
+                    } else if (score > 100) {
+                        finalRankDisplay.textContent = "最終ランク: 中級者";
+                    } else {
+                        finalRankDisplay.textContent = "最終ランク: 初心者";
+                    }
+
+                    // 終了画面を表示
+                    gameContainer.style.display = "none";
+                    endScreen.style.display = "block";
+                }
+            }, 1000);
+        }
+
+        function retryGame() {
+            endScreen.style.display = "none"; // 終了画面を非表示にする
+            startGame(); // ゲームを再スタート
+        }
+
+        inputField.addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                checkInput();
+            }
+        });
+
+        startButton.addEventListener("click", startGame);
+        retryButton.addEventListener("click", retryGame);
+        newWord(); // 最初の単語を表示
+    </script>
+</body>
+</html>
