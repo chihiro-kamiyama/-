@@ -78,7 +78,7 @@
         <div id="wordDisplay">準備中...</div>
         <input type="text" id="inputField" autofocus disabled>
         <div id="score">得点: 0</div>
-        <div id="timer">時間: 60秒</div>
+        <div id="timer">時間: 80秒</div>
         <div id="message"></div>
         <div id="rank"></div>
     </div>
@@ -96,7 +96,7 @@
         let currentWord;
         let score = 0;
         let consecutiveHits = 0;
-        let timer = 60;
+        let timer = 80;
         let interval;
 
         const wordDisplay = document.getElementById("wordDisplay");
@@ -156,7 +156,7 @@
         function startGame() {
             score = 0;
             consecutiveHits = 0;
-            timer = 60; // ゲーム時間を60秒にリセット
+            timer = 80; // ゲーム時間を80秒にリセット
             inputField.disabled = false; // 入力フィールドを有効にする
             scoreDisplay.textContent = "得点: " + score;
             timerDisplay.textContent = "時間: " + timer + "秒";
